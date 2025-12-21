@@ -141,6 +141,10 @@ struct accel_points {
 };
 #endif
 
+struct xf86libinput_pressure_range {
+	float min, max;
+};
+
 struct xf86libinput {
 	InputInfoPtr pInfo;
 	char *path;
@@ -199,9 +203,7 @@ struct xf86libinput {
 
 		float rotation_angle;
 		struct bezier_control_point pressurecurve[4];
-		struct range {
-			float min, max;
-		} pressure_range;
+		struct xf86libinput_pressure_range pressure_range;
 		struct ratio {
 			int x, y;
 		} area;
@@ -467,7 +469,7 @@ xf86libinput_set_pressurecurve(struct xf86libinput *driver_data,
 
 static inline bool
 xf86libinput_set_pressure_range(struct xf86libinput *driver_data,
-				const struct range *rangeopt)
+				const struct xf86libinput_pressure_range *rangeopt)
 {
 #if HAVE_LIBINPUT_PRESSURE_RANGE
 	struct libinput_tablet_tool *tool = driver_data->tablet_tool;
@@ -939,7 +941,7 @@ LibinputApplyConfigPressureRange(DeviceIntPtr dev,
 #if HAVE_LIBINPUT_PRESSURE_RANGE
 	InputInfoPtr pInfo = dev->public.devicePrivate;
 	struct libinput_tablet_tool *tool = driver_data->tablet_tool;
-	struct range *rangeopt = &driver_data->options.pressure_range;
+	struct xf86libinput_pressure_range *rangeopt = &driver_data->options.pressure_range;
 
 	if (!subdevice_has_capabilities(dev, CAP_TABLET_TOOL))
 		return;
@@ -2739,6 +2741,20 @@ xf86libinput_handle_event(struct libinput_event *event)
 			break;
 		case LIBINPUT_EVENT_SWITCH_TOGGLE:
 			break;
+
+		/* new libinput events we don't handle yet */
+#ifdef LIBINPUT_EVENT_GESTURE_HOLD_BEGIN
+		case LIBINPUT_EVENT_GESTURE_HOLD_BEGIN:
+			break;
+#endif
+#ifdef LIBINPUT_EVENT_GESTURE_HOLD_END
+		case LIBINPUT_EVENT_GESTURE_HOLD_END:
+			break;
+#endif
+#ifdef LIBINPUT_EVENT_TABLET_PAD_KEY
+		case LIBINPUT_EVENT_TABLET_PAD_KEY:
+			break;
+#endif
 	}
 
 out:
@@ -3490,13 +3506,17 @@ static inline BOOL
 xf86libinput_parse_middleemulation_option(InputInfoPtr pInfo,
 					  struct libinput_device *device)
 {
-	BOOL enabled;
+	int enabled;
 
 	if (!libinput_device_config_middle_emulation_is_available(device))
 		return FALSE;
 
 	enabled = xf86SetBoolOption(pInfo->options,
 				    "MiddleEmulation",
+				    -1); /* returns -1 if the option has not been set */
+	if (enabled == -1)
+		enabled = xf86SetBoolOption(pInfo->options,
+				    "Emulate3Buttons",
 				    libinput_device_config_middle_emulation_get_default_enabled(device));
 	if (libinput_device_config_middle_emulation_set_enabled(device, enabled) !=
 	    LIBINPUT_CONFIG_STATUS_SUCCESS) {
@@ -3685,7 +3705,7 @@ out:
 static void
 xf86libinput_parse_pressure_range_option(InputInfoPtr pInfo,
 					 struct xf86libinput *driver_data,
-					 struct range *rangeopt)
+					 struct xf86libinput_pressure_range *rangeopt)
 {
 #if HAVE_LIBINPUT_PRESSURE_RANGE
 	struct libinput_tablet_tool *tool = driver_data->tablet_tool;
@@ -3874,6 +3894,10 @@ xf86libinput_init_driver_context(void)
 		/* we want all msgs, let the server filter */
 		libinput_log_set_priority(driver_context.libinput,
 					  LIBINPUT_LOG_PRIORITY_DEBUG);
+#if HAVE_LIBINPUT_PLUGINS
+		libinput_plugin_system_append_default_paths(driver_context.libinput);
+		libinput_plugin_system_load_plugins(driver_context.libinput, LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
+#endif
 	} else {
 		libinput_ref(driver_context.libinput);
 	}
@@ -5384,7 +5408,7 @@ LibinputSetPropertyPressureRange(DeviceIntPtr dev,
 	InputInfoPtr pInfo = dev->public.devicePrivate;
 	struct xf86libinput *driver_data = pInfo->private;
 	float *vals;
-	struct range rangeopt = { 0.0, 1.0 };
+	struct xf86libinput_pressure_range rangeopt = { 0.0, 1.0 };
 
 	if (val->format != 32 || val->size != 2 || val->type != prop_float)
 		return BadMatch;
@@ -5642,7 +5666,8 @@ LibinputInitTapProperty(DeviceIntPtr dev,
 			struct xf86libinput *driver_data,
 			struct libinput_device *device)
 {
-	BOOL tap = driver_data->options.tapping;
+	// By default tapping property config is true
+	BOOL tap = driver_data->options.tapping ? driver_data->options.tapping : TRUE;
 
 	if (!subdevice_has_capabilities(dev, CAP_POINTER))
 		return;
@@ -6663,7 +6688,7 @@ LibinputInitPressureRangeProperty(DeviceIntPtr dev,
 {
 #if HAVE_LIBINPUT_PRESSURE_RANGE
 	struct libinput_tablet_tool *tool = driver_data->tablet_tool;
-	const struct range *rangeopt = &driver_data->options.pressure_range;
+	const struct xf86libinput_pressure_range *rangeopt = &driver_data->options.pressure_range;
 	float data[2] = {
 		rangeopt->min,
 		rangeopt->max,

@@ -28,12 +28,12 @@
 AM_CFLAGS = $(XORG_CFLAGS) $(CWARNFLAGS)
 AM_CPPFLAGS =-I$(top_srcdir)/include $(LIBINPUT_CFLAGS)
 
-@DRIVER_NAME@_drv_la_LTLIBRARIES = @DRIVER_NAME@_drv.la
-@DRIVER_NAME@_drv_la_LDFLAGS = -module -avoid-version
-@DRIVER_NAME@_drv_la_LIBADD = $(LIBINPUT_LIBS) libdraglock.la libbezier.la -lm
-@DRIVER_NAME@_drv_ladir = @inputdir@
+libinput_drv_la_LTLIBRARIES = libinput_drv.la
+libinput_drv_la_LDFLAGS = -module -avoid-version
+libinput_drv_la_LIBADD = $(LIBINPUT_LIBS) libdraglock.la libbezier.la -lm
+libinput_drv_ladir = @inputdir@
 
-@DRIVER_NAME@_drv_la_SOURCES = \
+libinput_drv_la_SOURCES = \
 	xf86libinput.c \
 	util-macros.h \
 	util-strings.h \

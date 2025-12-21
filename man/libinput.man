@@ -21,7 +21,7 @@ If you are looking for the library documentation, go to
 
 .SH DESCRIPTION
 .B libinput
-is an Xorg input driver based on libinput.
+is an XLibre input driver based on libinput.
 It therefore supports all input devices that libinput can handle, including
 most mice, keyboards, tablets and touchscreens.
 .PP
@@ -178,6 +178,15 @@ Enables left-handed button orientation, i.e. swapping left and right buttons.
 Enables middle button emulation.
 When enabled, pressing the left and right
 buttons simultaneously produces a middle mouse button click.
+A synonym
+.IP
+.BI "Option \*qEmulate3Buttons\*q \*q" bool \*q
+.IP
+is preserved for compatibility with
+.B evdev
+driver, with 
+.BI "\*qMiddleEmulation\*q
+having preference if both are set.
 .TP 7
 .BI "Option \*qNaturalScrolling\*q \*q" bool \*q
 Enables or disables natural scrolling behavior.
@@ -468,13 +477,13 @@ button mapping of
 .B "\*q3 2 1 ...\*q"
 On systems using the
 .B libinput
-Xorg input driver it is recommended to use the
+XLibre input driver it is recommended to use the
 .B LeftHanded
 option instead.
 .PP
 The
 .B libinput
-Xorg input driver does not use the button mapping after setup.
+XLibre input driver does not use the button mapping after setup.
 Use
 .BR XSetPointerMapping (3)
 to modify the button mapping at runtime.
@@ -597,7 +606,7 @@ appropriate \fBMatch*\fR statement in the
 .SH AUTHORS
 Peter Hutterer
 .SH "SEE ALSO"
-.BR Xorg (1),
+.BR XLibre (1),
 .BR xorg.conf (5),
 .BR Xserver (1),
 .BR X (7)

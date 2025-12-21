@@ -22,10 +22,10 @@
 
 # Initialize Autoconf
 AC_PREREQ([2.60])
-AC_INIT([xf86-input-libinput],
-        [1.5.0],
-        [https://gitlab.freedesktop.org/xorg/driver/xf86-input-libinput/issues],
-        [xf86-input-libinput])
+AC_INIT([xlibre-xf86-input-libinput],
+        [25.0.0],
+        [https://github.com/X11Libre/xf86-input-libinput/issues],
+        [xlibre-xf86-input-libinput])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR(.)
@@ -42,6 +42,8 @@ m4_ifndef([XORG_MACROS_VERSION],
           [m4_fatal([must install xorg-macros 1.8 or later before running autoconf/autogen])])
 XORG_MACROS_VERSION(1.8)
 XORG_DEFAULT_OPTIONS
+
+CFLAGS="$CFLAGS -Wno-declaration-after-statement"
 
 # Obtain compiler/linker options from server and required extensions
 PKG_CHECK_MODULES(XORG, [xorg-server >= 1.19] xproto [inputproto >= 2.2])
@@ -111,6 +113,17 @@ AC_LINK_IFELSE(
                [AC_MSG_RESULT([no])
                 [libinput_have_clickfinger_button_map=no]])
 
+AC_MSG_CHECKING([if libinput_plugin_system_load is available])
+AC_LINK_IFELSE(
+               [AC_LANG_PROGRAM([[#include <libinput.h>]],
+                                [[libinput_plugin_system_load_plugins(NULL, 0)]])],
+               [AC_MSG_RESULT([yes])
+                AC_DEFINE(HAVE_LIBINPUT_PLUGINS, [1],
+                          [libinput_plugin_system_load_plugins() is available])
+                [libinput_have_plugin_system=yes]],
+               [AC_MSG_RESULT([no])
+                [libinput_have_plugin_system=no]])
+
 LIBS=$OLD_LIBS
 CFLAGS=$OLD_CFLAGS
 
@@ -139,13 +152,10 @@ sdkdir=`$PKG_CONFIG --variable=sdkdir xorg-server`
 AC_ARG_WITH([sdkdir], [], [sdkdir="$withval"])
 AC_SUBST([sdkdir])
 
-DRIVER_NAME=libinput
-AC_SUBST([DRIVER_NAME])
-
 AC_CONFIG_FILES([Makefile
 		 include/Makefile
 		 src/Makefile
 		 man/Makefile
 		 test/Makefile
-		 xorg-libinput.pc])
+		])
 AC_OUTPUT
