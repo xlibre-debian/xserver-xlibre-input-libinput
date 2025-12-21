@@ -1,11 +1,10 @@
 project('xf86-input-libinput', 'c',
-        version: '1.5.0',  # bump version in configure.ac
+        version: '25.0.0',
         default_options: ['warning_level=2'],
         meson_version: '>= 0.50.0')
 
 driver_version = meson.project_version().split('.')
 
-dir_pkgconf	= get_option('prefix') / get_option('libdir') / 'pkgconfig'
 dir_man4	= get_option('prefix') / get_option('mandir') / 'man4'
 
 cc = meson.get_compiler('c')
@@ -65,8 +64,12 @@ if cc.has_function('libinput_device_config_click_set_clickfinger_button_map',
 		   dependencies: dep_libinput)
 	config_h.set('HAVE_LIBINPUT_CLICKFINGER_BUTTON_MAP', 1)
 endif
-if cc.has_header_symbol('libinput.h', 'LIBINPUT_LED_COMPOSE')
+if cc.has_header_symbol('libinput.h', 'LIBINPUT_LED_COMPOSE',
+			dependencies: dep_libinput)
 	config_h.set('HAVE_LIBINPUT_COMPOSE_AND_KANA', 1)
+endif
+if cc.has_function('libinput_plugin_system_load_plugins', dependencies: dep_libinput)
+	config_h.set('HAVE_LIBINPUT_PLUGINS', 1)
 endif
 
 dir_headers = get_option('sdkdir')
@@ -123,18 +126,6 @@ test_draglock = executable('test-draglock',
 			 include_directories: include_directories('src'),
 			 install: false)
 test('test-draglock', test_draglock)
-
-
-conf_pkgconf = configuration_data()
-conf_pkgconf.set('PACKAGE_VERSION', meson.project_version())
-conf_pkgconf.set('sdkdir', dir_headers)
-
-configure_file(
-	input: 'xorg-libinput.pc.in',
-	output: 'xorg-libinput.pc',
-	configuration: conf_pkgconf,
-	install_dir: dir_pkgconf,
-)
 
 config_man = configuration_data()
 config_man.set('VERSION', '@0@ @1@'.format(meson.project_name(), meson.project_version()))
