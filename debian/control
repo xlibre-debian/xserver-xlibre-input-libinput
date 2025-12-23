@@ -13,8 +13,8 @@ Build-Depends:
  xutils-dev,
 Standards-Version: 4.6.0
 Homepage: https://github.com/X11Libre
-Vcs-Git: https://github.com/xlibre-deb/xserver-xlibre-input-libinput.git
-Vcs-Browser: https://github.com/xlibre-deb/xserver-xlibre-input-libinput
+Vcs-Git: https://github.com/xlibre-debian/xserver-xlibre-input-libinput.git
+Vcs-Browser: https://github.com/xlibre-debian/xserver-xlibre-input-libinput
 
 Package: xserver-xlibre-input-libinput
 Architecture: linux-any
