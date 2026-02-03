@@ -1,10 +1,11 @@
 project('xf86-input-libinput', 'c',
-        version: '25.0.0',
+        version: '25.0.1',
         default_options: ['warning_level=2'],
         meson_version: '>= 0.50.0')
 
 driver_version = meson.project_version().split('.')
 
+dir_pkgconf	= get_option('prefix') / get_option('libdir') / 'pkgconfig'
 dir_man4	= get_option('prefix') / get_option('mandir') / 'man4'
 
 cc = meson.get_compiler('c')
@@ -32,17 +33,13 @@ add_project_arguments(cc.get_supported_arguments(cflags), language: 'c')
 pkgconfig = import('pkgconfig')
 dep_xserver = dependency('xorg-server', version: '>= 1.19')
 dep_xproto = dependency('xproto')
-dep_inputproto = dependency('inputproto', version: '>= 2.2')
+dep_inputproto = dependency('inputproto', version: '>= 2.3.99.1')
 dep_libinput = dependency('libinput', version: '>= 1.11.0')
 
 config_h = configuration_data()
 config_h.set('PACKAGE_VERSION_MAJOR', driver_version[0])
 config_h.set('PACKAGE_VERSION_MINOR', driver_version[1])
 config_h.set('PACKAGE_VERSION_PATCHLEVEL', driver_version[2])
-
-if dep_inputproto.version().version_compare('>= 2.3.99.1')
-	config_h.set('HAVE_INPUTPROTO24', 1)
-endif
 
 if cc.has_function('libinput_device_config_scroll_get_button_lock',
 		   dependencies: dep_libinput)
@@ -126,6 +123,18 @@ test_draglock = executable('test-draglock',
 			 include_directories: include_directories('src'),
 			 install: false)
 test('test-draglock', test_draglock)
+
+
+conf_pkgconf = configuration_data()
+conf_pkgconf.set('PACKAGE_VERSION', meson.project_version())
+conf_pkgconf.set('sdkdir', dir_headers)
+
+configure_file(
+	input: 'xorg-libinput.pc.in',
+	output: 'xorg-libinput.pc',
+	configuration: conf_pkgconf,
+	install_dir: dir_pkgconf,
+)
 
 config_man = configuration_data()
 config_man.set('VERSION', '@0@ @1@'.format(meson.project_name(), meson.project_version()))

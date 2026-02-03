@@ -23,7 +23,7 @@
 # Initialize Autoconf
 AC_PREREQ([2.60])
 AC_INIT([xlibre-xf86-input-libinput],
-        [25.0.0],
+        [25.0.1],
         [https://github.com/X11Libre/xf86-input-libinput/issues],
         [xlibre-xf86-input-libinput])
 AC_CONFIG_SRCDIR([Makefile.am])
@@ -46,12 +46,8 @@ XORG_DEFAULT_OPTIONS
 CFLAGS="$CFLAGS -Wno-declaration-after-statement"
 
 # Obtain compiler/linker options from server and required extensions
-PKG_CHECK_MODULES(XORG, [xorg-server >= 1.19] xproto [inputproto >= 2.2])
+PKG_CHECK_MODULES(XORG, [xorg-server >= 25.0.0] xproto [inputproto >= 2.3.99.1])
 PKG_CHECK_MODULES(LIBINPUT, [libinput >= 1.11.0])
-
-PKG_CHECK_MODULES(INPUTPROTO24, [inputproto >= 2.3.99.1],
-		  [AC_DEFINE(HAVE_INPUTPROTO24, [1], [inputproto 2.4 is available])],
-		  [:])
 
 OLD_LIBS=$LIBS
 OLD_CFLAGS=$CFLAGS
@@ -157,5 +153,5 @@ AC_CONFIG_FILES([Makefile
 		 src/Makefile
 		 man/Makefile
 		 test/Makefile
-		])
+		 xorg-libinput.pc])
 AC_OUTPUT
